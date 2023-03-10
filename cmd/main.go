@@ -1,7 +1,12 @@
 package main
 
-import "github.com/maxzhovtyj/image-api/internal/app"
+import (
+	"github.com/maxzhovtyj/image-api/config"
+	"github.com/maxzhovtyj/image-api/internal/app"
+)
 
 func main() {
-	app.Run()
+	cfg := config.Get()
+
+	app.Run(cfg)
 }
