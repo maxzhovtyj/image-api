@@ -4,7 +4,7 @@ import (
 	"github.com/maxzhovtyj/image-api/config"
 	delivery "github.com/maxzhovtyj/image-api/internal/delivery/http"
 	"github.com/maxzhovtyj/image-api/internal/server"
-	"github.com/maxzhovtyj/image-api/pkg/rabbitmq"
+	"github.com/maxzhovtyj/image-api/pkg/queue/rabbitmq"
 	"log"
 )
 
