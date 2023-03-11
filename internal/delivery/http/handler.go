@@ -17,8 +17,6 @@ func NewHandler() *Handler {
 func (h *Handler) Init() *gin.Engine {
 	router := gin.Default()
 
-	router.Use(gin.Logger(), gin.Recovery())
-
 	api := router.Group(apiURL)
 	{
 		api.GET(imageURL, h.getImage)
