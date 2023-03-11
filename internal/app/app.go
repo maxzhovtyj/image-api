@@ -4,12 +4,15 @@ import (
 	"github.com/maxzhovtyj/image-api/config"
 	delivery "github.com/maxzhovtyj/image-api/internal/delivery/http"
 	"github.com/maxzhovtyj/image-api/internal/server"
+	"github.com/maxzhovtyj/image-api/internal/service"
 	"github.com/maxzhovtyj/image-api/pkg/queue/rabbitmq"
 	"log"
 )
 
 func Run(config *config.Config) {
-	handler := delivery.NewHandler()
+
+	services := service.New()
+	handler := delivery.NewHandler(services)
 
 	_, err := rabbitmq.NewClient(&config.AMQP)
 	if err != nil {

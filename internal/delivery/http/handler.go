@@ -1,6 +1,9 @@
 package delivery
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/maxzhovtyj/image-api/internal/service"
+)
 
 const (
 	apiURL   = "api"
@@ -8,10 +11,13 @@ const (
 )
 
 type Handler struct {
+	services *service.Service
 }
 
-func NewHandler() *Handler {
-	return &Handler{}
+func NewHandler(services *service.Service) *Handler {
+	return &Handler{
+		services: services,
+	}
 }
 
 func (h *Handler) Init() *gin.Engine {
