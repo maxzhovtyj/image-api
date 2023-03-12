@@ -1,8 +1,9 @@
 package delivery
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/maxzhovtyj/image-api/internal/domain"
+	"image/jpeg"
 	"net/http"
 )
 
@@ -39,10 +40,23 @@ func (h *Handler) addImage(ctx *gin.Context) {
 		return
 	}
 
-	_ = &domain.File{
-		Name:   fileInfo.Filename,
-		Size:   fileInfo.Size,
-		Reader: fileReader,
+	decodedImage, err := jpeg.Decode(fileReader)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
 	}
 
+	err = fileReader.Close()
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = h.services.Publisher.Publish(context.Background(), decodedImage)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.String(http.StatusOK, "image successfully created")
 }

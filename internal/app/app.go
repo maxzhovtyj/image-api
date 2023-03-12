@@ -11,13 +11,16 @@ import (
 )
 
 func Run(config *config.Config) {
-	_, err := rabbitmq.NewClient(&config.AMQP)
+	client, err := rabbitmq.NewClient(&config.AMQP)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	repo := repository.New("/img")
-	services := service.New(repo)
+	broker := rabbitmq.NewMessageBroker(client)
+	defer broker.Publisher.CloseChan()
+
+	repo := repository.New("img")
+	services := service.New(repo, broker.Publisher)
 	handler := delivery.NewHandler(services)
 
 	srv := server.New(config, handler.Init())

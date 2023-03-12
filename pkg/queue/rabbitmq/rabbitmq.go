@@ -24,6 +24,16 @@ func NewClient(cfg *config.AMQP) (*amqp.Connection, error) {
 }
 
 type MessageBroker struct {
+	Publisher *Publisher
+	Consumer  *Consumer
+}
+
+type Publisher struct {
+	channel *amqp.Channel
+	queue   amqp.Queue
+}
+
+type Consumer struct {
 	channel *amqp.Channel
 	queue   amqp.Queue
 }
@@ -47,16 +57,22 @@ func NewMessageBroker(connection *amqp.Connection) *MessageBroker {
 	}
 
 	return &MessageBroker{
-		channel,
-		queue,
+		&Publisher{
+			channel: channel,
+			queue:   queue,
+		},
+		&Consumer{
+			channel: channel,
+			queue:   queue,
+		},
 	}
 }
 
-func (m *MessageBroker) PublishMessage(ctx context.Context, messageBody []byte, contentType string) error {
-	err := m.channel.PublishWithContext(
+func (p *Publisher) PublishMessage(ctx context.Context, messageBody []byte, contentType string) error {
+	err := p.channel.PublishWithContext(
 		ctx,
 		"",
-		m.queue.Name,
+		p.queue.Name,
 		false,
 		false,
 		amqp.Publishing{
@@ -71,9 +87,16 @@ func (m *MessageBroker) PublishMessage(ctx context.Context, messageBody []byte, 
 	return nil
 }
 
-func (m *MessageBroker) ConsumeMessages() <-chan Message {
-	consume, err := m.channel.Consume(
-		m.queue.Name,
+func (p *Publisher) CloseChan() {
+	err := p.channel.Close()
+	if err != nil {
+		return
+	}
+}
+
+func (c *Consumer) ConsumeMessages() <-chan Message {
+	consume, err := c.channel.Consume(
+		c.queue.Name,
 		"",
 		false,
 		false,
