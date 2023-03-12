@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/maxzhovtyj/image-api/config"
 	delivery "github.com/maxzhovtyj/image-api/internal/delivery/http"
+	"github.com/maxzhovtyj/image-api/internal/repository"
 	"github.com/maxzhovtyj/image-api/internal/server"
 	"github.com/maxzhovtyj/image-api/internal/service"
 	"github.com/maxzhovtyj/image-api/pkg/queue/rabbitmq"
@@ -10,14 +11,14 @@ import (
 )
 
 func Run(config *config.Config) {
-
-	services := service.New()
-	handler := delivery.NewHandler(services)
-
 	_, err := rabbitmq.NewClient(&config.AMQP)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	repo := repository.New("/img")
+	services := service.New(repo)
+	handler := delivery.NewHandler(services)
 
 	srv := server.New(config, handler.Init())
 
