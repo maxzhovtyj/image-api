@@ -9,9 +9,9 @@ import (
 )
 
 type ImageManager interface {
-	Resize(buf []byte, width, height uint) ([]byte, error)
-	Read(path string) ([]byte, error)
-	Write(path string, buf []byte) error
+	Resize(width, height uint, img image.Image) image.Image
+	Read(path string) (image.Image, error)
+	Write(path string, image image.Image) error
 }
 
 type Manager struct {
@@ -45,7 +45,6 @@ func (m *Manager) Write(path string, image image.Image) error {
 		return err
 	}
 
-	// write new image to file
 	err = jpeg.Encode(out, image, nil)
 	if err != nil {
 		return err
