@@ -1,17 +1,21 @@
 package repository
 
 import (
+	"fmt"
 	"github.com/google/uuid"
+	"github.com/maxzhovtyj/image-api/pkg/img"
 	"image"
 )
 
 type ImagesRepo struct {
-	dir string
+	dir     string
+	manager img.ImageManager
 }
 
-func NewImagesRepo(imageDirPath string) *ImagesRepo {
+func NewImagesRepo(imageDirPath string, manager img.ImageManager) *ImagesRepo {
 	return &ImagesRepo{
-		dir: imageDirPath,
+		dir:     imageDirPath,
+		manager: manager,
 	}
 }
 
@@ -19,6 +23,17 @@ func (r *ImagesRepo) Get(imageID uuid.UUID, quality int) (image.Image, error) {
 	return nil, nil
 }
 
-func (r *ImagesRepo) Create(image image.Image) error {
+func (r *ImagesRepo) Create(name string, image image.Image) error {
+	filePath := fmt.Sprintf("%s/%s", r.dir, name)
+
+	err := r.manager.Write(filePath, image)
+	if err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func (r *ImagesRepo) Resize(width, height uint, img image.Image) image.Image {
+	return r.manager.Resize(width, height, img)
 }

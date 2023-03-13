@@ -10,7 +10,8 @@ import (
 
 type Images interface {
 	Get(imageID uuid.UUID, quality int) (image.Image, error)
-	Create(image image.Image) (uuid.UUID, error)
+	Create(image image.Image, extension string, quality int) error
+	Resize(img image.Image, width, height int) image.Image
 }
 
 type Publisher interface {

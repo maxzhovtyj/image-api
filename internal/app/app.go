@@ -18,18 +18,20 @@ func Run(config *config.Config) {
 		log.Fatal(err)
 	}
 
+	broker := rabbitmq.NewMessageBroker(client)
+	defer broker.Publisher.CloseChan()
+
 	imageManager := img.NewManager()
 
-	broker := rabbitmq.NewMessageBroker(client)
-	//defer broker.Publisher.CloseChan()
-
-	repo := repository.New("img")
+	repo := repository.New("img", imageManager)
 	services := service.New(repo, broker.Publisher)
 	handler := delivery.NewHandler(services)
 
 	srv := server.New(config, handler.Init())
 
-	queueConsumer := queue.NewConsumer(broker.Consumer, imageManager)
+	imageQualities := []int{100, 75, 50, 25}
+
+	queueConsumer := queue.NewConsumer(broker.Consumer, services.Images, imageQualities)
 
 	err = queueConsumer.Start()
 	if err != nil {
