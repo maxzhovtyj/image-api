@@ -19,8 +19,15 @@ func (s *ImagesService) getFileName(imageID string, quality int) string {
 	return fmt.Sprintf("%s_%d", imageID, quality)
 }
 
-func (s *ImagesService) Get(imageID uuid.UUID, quality int) (image.Image, error) {
-	return nil, nil
+func (s *ImagesService) Get(imageID uuid.UUID, quality int) ([]byte, error) {
+	fileName := s.getFileName(imageID.String(), quality)
+
+	img, err := s.repo.Get(fileName)
+	if err != nil {
+		return nil, err
+	}
+
+	return img, nil
 }
 
 func (s *ImagesService) Create(image image.Image, contentType string, quality int) error {

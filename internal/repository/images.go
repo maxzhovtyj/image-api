@@ -2,9 +2,11 @@ package repository
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/maxzhovtyj/image-api/pkg/img"
 	"image"
+	"io/fs"
+	"path/filepath"
+	"strings"
 )
 
 type ImagesRepo struct {
@@ -19,8 +21,37 @@ func NewImagesRepo(imageDirPath string, manager img.ImageManager) *ImagesRepo {
 	}
 }
 
-func (r *ImagesRepo) Get(imageID uuid.UUID, quality int) (image.Image, error) {
-	return nil, nil
+func (r *ImagesRepo) Get(fileName string) ([]byte, error) {
+	var fileRes string
+
+	err := filepath.Walk(r.dir, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		currFileName := info.Name()
+
+		fileBase := filepath.Base(currFileName)
+		fileExt := filepath.Ext(currFileName)
+
+		currFileNameWithoutExt := strings.TrimSuffix(fileBase, fileExt)
+
+		if currFileNameWithoutExt == fileName {
+			fileRes = currFileName
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	readImg, err := r.manager.Read(r.dir + "/" + fileRes)
+	if err != nil {
+		return nil, err
+	}
+
+	return readImg, nil
 }
 
 func (r *ImagesRepo) Create(name string, contentType string, image image.Image) error {

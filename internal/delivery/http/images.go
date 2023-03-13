@@ -5,16 +5,39 @@ import (
 	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/maxzhovtyj/image-api/internal/domain"
 	"io"
 	"net/http"
+	"strconv"
 )
 
 const maxFileSize = 2 << 20
 
 func (h *Handler) getImage(ctx *gin.Context) {
-	// TODO
-	panic("implement me")
+	ctx.Request.Header.Set("Content-Type", "application/octet-stream")
+	imageID := ctx.Query("id")
+	imageQuality := ctx.Query("quality")
+
+	imageQualityInt, err := strconv.Atoi(imageQuality)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	imageUUID, err := uuid.Parse(imageID)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	imageBytes, err := h.services.Images.Get(imageUUID, imageQualityInt)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.Writer.Write(imageBytes)
 }
 
 func (h *Handler) addImage(ctx *gin.Context) {
