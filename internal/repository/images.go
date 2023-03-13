@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"github.com/maxzhovtyj/image-api/internal/domain"
 	"github.com/maxzhovtyj/image-api/pkg/img"
 	"image"
 	"io/fs"
@@ -44,6 +45,10 @@ func (r *ImagesRepo) Get(fileName string) ([]byte, error) {
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	if fileRes == "" {
+		return nil, domain.ErrImageNotFound
 	}
 
 	readImg, err := r.manager.Read(r.dir + "/" + fileRes)

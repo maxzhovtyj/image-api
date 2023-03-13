@@ -33,15 +33,23 @@ func (h *Handler) getImage(ctx *gin.Context) {
 
 	imageBytes, err := h.services.Images.Get(imageUUID, imageQualityInt)
 	if err != nil {
+		if errors.Is(err, domain.ErrImageNotFound) {
+			newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+			return
+		}
+
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ctx.Writer.Write(imageBytes)
+	_, err = ctx.Writer.Write(imageBytes)
+	if err != nil {
+		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
 }
 
 func (h *Handler) addImage(ctx *gin.Context) {
-	ctx.Writer.Header().Set("Content-Type", "form/json")
 	err := ctx.Request.ParseMultipartForm(maxFileSize)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
