@@ -15,23 +15,23 @@ func NewImagesService(images repository.Images) *ImagesService {
 	return &ImagesService{repo: images}
 }
 
-func (s *ImagesService) getFileName(imageID string, quality int, extension string) string {
-	return fmt.Sprintf("%s_%d.%s", imageID, quality, extension)
+func (s *ImagesService) getFileName(imageID string, quality int) string {
+	return fmt.Sprintf("%s_%d", imageID, quality)
 }
 
 func (s *ImagesService) Get(imageID uuid.UUID, quality int) (image.Image, error) {
 	return nil, nil
 }
 
-func (s *ImagesService) Create(image image.Image, extension string, quality int) error {
+func (s *ImagesService) Create(image image.Image, contentType string, quality int) error {
 	newUUID, err := uuid.NewUUID()
 	if err != nil {
 		return err
 	}
 
-	fileName := s.getFileName(newUUID.String(), quality, extension)
+	fileName := s.getFileName(newUUID.String(), quality)
 
-	err = s.repo.Create(fileName, image)
+	err = s.repo.Create(fileName, contentType, image)
 	if err != nil {
 		return err
 	}

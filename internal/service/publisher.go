@@ -1,11 +1,10 @@
 package service
 
 import (
-	"bytes"
 	"context"
+	"github.com/maxzhovtyj/image-api/internal/domain"
 	"github.com/maxzhovtyj/image-api/pkg/queue/rabbitmq"
-	"image"
-	"image/jpeg"
+	"net/http"
 )
 
 type PublisherService struct {
@@ -16,21 +15,21 @@ func NewPublisherService(publisher *rabbitmq.Publisher) *PublisherService {
 	return &PublisherService{publisher: publisher}
 }
 
-func (s *PublisherService) Publish(ctx context.Context, image image.Image) error {
-	buff := new(bytes.Buffer)
+func (s *PublisherService) Publish(ctx context.Context, image []byte) error {
+	contentType := http.DetectContentType(image)
 
-	err := jpeg.Encode(buff, image, &jpeg.Options{Quality: 100})
-	if err != nil {
-		return err
-	}
-
-	err = s.publisher.PublishMessage(
-		ctx,
-		buff.Bytes(),
-		"images/jpeg",
-	)
-	if err != nil {
-		return err
+	switch contentType {
+	case "image/jpeg", "image/jpg", "image/png":
+		err := s.publisher.PublishMessage(
+			ctx,
+			image,
+			contentType,
+		)
+		if err != nil {
+			return err
+		}
+	default:
+		return domain.ErrInvalidContentType
 	}
 
 	return nil

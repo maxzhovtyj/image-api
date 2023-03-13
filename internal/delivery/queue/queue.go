@@ -5,6 +5,7 @@ import (
 	"github.com/maxzhovtyj/image-api/internal/service"
 	"github.com/maxzhovtyj/image-api/pkg/queue/rabbitmq"
 	"image"
+	"log"
 )
 
 type Consumer struct {
@@ -35,7 +36,7 @@ func (c *Consumer) worker() {
 		case msg := <-messages:
 			decodedImage, _, err := image.Decode(bytes.NewReader(msg.Body))
 			if err != nil {
-				return
+				log.Fatal(err)
 			}
 
 			currWidth := decodedImage.Bounds().Dx()
@@ -45,14 +46,14 @@ func (c *Consumer) worker() {
 				newWidth := currWidth * quality / 100
 				newHeight := currHeight * quality / 100
 
-				resizedImg := c.service.Resize(decodedImage, newWidth, newHeight)
+				resizedImg, err := c.service.Resize(decodedImage, newWidth, newHeight)
 				if err != nil {
-					return
+					log.Fatal(err)
 				}
 
-				err = c.service.Create(resizedImg, "jpg", quality)
+				err = c.service.Create(resizedImg, msg.ContentType, quality)
 				if err != nil {
-					return
+					log.Fatal(err)
 				}
 			}
 		}

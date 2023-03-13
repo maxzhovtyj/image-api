@@ -1,9 +1,12 @@
 package delivery
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"github.com/gin-gonic/gin"
-	"image/jpeg"
+	"github.com/maxzhovtyj/image-api/internal/domain"
+	"io"
 	"net/http"
 )
 
@@ -16,7 +19,7 @@ func (h *Handler) getImage(ctx *gin.Context) {
 
 func (h *Handler) addImage(ctx *gin.Context) {
 	ctx.Writer.Header().Set("Content-Type", "form/json")
-	err := ctx.Request.ParseMultipartForm(5 << 20)
+	err := ctx.Request.ParseMultipartForm(maxFileSize)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
@@ -40,23 +43,22 @@ func (h *Handler) addImage(ctx *gin.Context) {
 		return
 	}
 
-	decodedImage, err := jpeg.Decode(fileReader)
+	imageBuf := bytes.NewBuffer(nil)
+	_, err = io.Copy(imageBuf, fileReader)
 	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	err = fileReader.Close()
+	err = h.services.Publisher.Publish(context.Background(), imageBuf.Bytes())
 	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
-		return
-	}
+		if errors.Is(err, domain.ErrInvalidContentType) {
+			newErrorResponse(ctx, http.StatusUnsupportedMediaType, err.Error())
+			return
+		}
 
-	err = h.services.Publisher.Publish(context.Background(), decodedImage)
-	if err != nil {
 		newErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ctx.String(http.StatusOK, "image successfully created")
+	ctx.String(http.StatusOK, "image successfully published")
 }

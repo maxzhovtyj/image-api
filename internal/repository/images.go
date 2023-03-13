@@ -23,10 +23,10 @@ func (r *ImagesRepo) Get(imageID uuid.UUID, quality int) (image.Image, error) {
 	return nil, nil
 }
 
-func (r *ImagesRepo) Create(name string, image image.Image) error {
+func (r *ImagesRepo) Create(name string, contentType string, image image.Image) error {
 	filePath := fmt.Sprintf("%s/%s", r.dir, name)
 
-	err := r.manager.Write(filePath, image)
+	err := r.manager.Write(filePath, contentType, image)
 	if err != nil {
 		return err
 	}

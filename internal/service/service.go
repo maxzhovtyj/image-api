@@ -10,12 +10,12 @@ import (
 
 type Images interface {
 	Get(imageID uuid.UUID, quality int) (image.Image, error)
-	Create(image image.Image, extension string, quality int) error
-	Resize(img image.Image, width, height int) image.Image
+	Create(image image.Image, contentType string, quality int) error
+	Resize(img image.Image, width, height int) (image.Image, error)
 }
 
 type Publisher interface {
-	Publish(ctx context.Context, image image.Image) error
+	Publish(ctx context.Context, image []byte) error
 }
 
 type Service struct {

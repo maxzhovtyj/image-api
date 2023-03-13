@@ -1,9 +1,11 @@
 package img
 
 import (
+	"fmt"
 	"github.com/nfnt/resize"
 	"image"
 	"image/jpeg"
+	"image/png"
 	"log"
 	"os"
 )
@@ -11,7 +13,7 @@ import (
 type ImageManager interface {
 	Resize(width, height uint, img image.Image) image.Image
 	Read(path string) (image.Image, error)
-	Write(path string, image image.Image) error
+	Write(path string, contentType string, image image.Image) error
 }
 
 type Manager struct {
@@ -39,15 +41,29 @@ func (m *Manager) Read(path string) (image.Image, error) {
 	return img, nil
 }
 
-func (m *Manager) Write(path string, image image.Image) error {
-	out, err := os.Create(path)
+var contentTypeExtension = map[string]string{
+	"image/png":  "png",
+	"image/jpg":  "jpg",
+	"image/jpeg": "jpeg",
+}
+
+func (m *Manager) Write(path string, contentType string, image image.Image) error {
+	out, err := os.Create(fmt.Sprintf("%s.%s", path, contentTypeExtension[contentType]))
 	if err != nil {
 		return err
 	}
 
-	err = jpeg.Encode(out, image, nil)
-	if err != nil {
-		return err
+	switch contentType {
+	case "image/jpeg", "image/jpg":
+		err = jpeg.Encode(out, image, nil)
+		if err != nil {
+			return err
+		}
+	case "image/png":
+		err = png.Encode(out, image)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
