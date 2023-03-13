@@ -2,6 +2,7 @@ package queue
 
 import (
 	"bytes"
+	"github.com/google/uuid"
 	"github.com/maxzhovtyj/image-api/internal/service"
 	"github.com/maxzhovtyj/image-api/pkg/queue/rabbitmq"
 	"image"
@@ -42,6 +43,11 @@ func (c *Consumer) worker() {
 			currWidth := decodedImage.Bounds().Dx()
 			currHeight := decodedImage.Bounds().Dy()
 
+			newUUID, err := uuid.NewUUID()
+			if err != nil {
+				log.Fatal(err)
+			}
+
 			for _, quality := range c.qualities {
 				newWidth := currWidth * quality / 100
 				newHeight := currHeight * quality / 100
@@ -51,7 +57,7 @@ func (c *Consumer) worker() {
 					log.Fatal(err)
 				}
 
-				err = c.service.Create(resizedImg, msg.ContentType, quality)
+				err = c.service.Create(resizedImg, newUUID, msg.ContentType, quality)
 				if err != nil {
 					log.Fatal(err)
 				}

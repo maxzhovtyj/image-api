@@ -30,15 +30,10 @@ func (s *ImagesService) Get(imageID uuid.UUID, quality int) ([]byte, error) {
 	return img, nil
 }
 
-func (s *ImagesService) Create(image image.Image, contentType string, quality int) error {
-	newUUID, err := uuid.NewUUID()
-	if err != nil {
-		return err
-	}
+func (s *ImagesService) Create(image image.Image, imageID uuid.UUID, contentType string, quality int) error {
+	fileName := s.getFileName(imageID.String(), quality)
 
-	fileName := s.getFileName(newUUID.String(), quality)
-
-	err = s.repo.Create(fileName, contentType, image)
+	err := s.repo.Create(fileName, contentType, image)
 	if err != nil {
 		return err
 	}
