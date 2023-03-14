@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/maxzhovtyj/image-api/internal/domain"
@@ -16,18 +17,19 @@ const maxFileSize = 2 << 20
 
 func (h *Handler) getImage(ctx *gin.Context) {
 	ctx.Request.Header.Set("Content-Type", "application/octet-stream")
+
 	imageID := ctx.Query("id")
 	imageQuality := ctx.Query("quality")
 
 	imageQualityInt, err := strconv.Atoi(imageQuality)
 	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid image quality").Error())
 		return
 	}
 
 	imageUUID, err := uuid.Parse(imageID)
 	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid image uuid").Error())
 		return
 	}
 
@@ -58,25 +60,26 @@ func (h *Handler) addImage(ctx *gin.Context) {
 
 	files, ok := ctx.Request.MultipartForm.File["file"]
 	if len(files) == 0 || !ok {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("file not valid").Error())
 		return
 	}
 
 	fileInfo := files[0]
 	fileReader, err := fileInfo.Open()
 	if err != nil {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to read file %v", err).Error())
 		return
 	}
 
 	if fileInfo.Size > maxFileSize {
-		newErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("file size exceeded").Error())
 		return
 	}
 
 	imageBuf := bytes.NewBuffer(nil)
 	_, err = io.Copy(imageBuf, fileReader)
 	if err != nil {
+		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("failed to convert file to bytes buffer").Error())
 		return
 	}
 

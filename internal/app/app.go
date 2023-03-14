@@ -28,7 +28,7 @@ func Run(config *config.Config, logger logger.Logger) {
 	logger.Info("initializing repository, services and handlers")
 	repo := repository.New("img", imageManager)
 	services := service.New(repo, broker.Publisher)
-	handler := delivery.NewHandler(services)
+	handler := delivery.NewHandler(services, logger)
 
 	logger.Info("initializing new server")
 	srv := server.New(config, handler.Init())

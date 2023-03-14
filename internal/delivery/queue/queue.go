@@ -31,6 +31,7 @@ func NewConsumer(
 }
 
 func (c *Consumer) Start() error {
+	c.logger.Info("queue consumer: running new worker in goroutine")
 	go c.worker()
 
 	return nil
