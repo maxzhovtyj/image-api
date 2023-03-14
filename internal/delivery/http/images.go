@@ -13,7 +13,10 @@ import (
 	"strconv"
 )
 
-const maxFileSize = 2 << 20
+const (
+	maxFileSize         = 2 << 20
+	defaultImageQuality = 100
+)
 
 func (h *Handler) getImage(ctx *gin.Context) {
 	ctx.Request.Header.Set("Content-Type", "application/octet-stream")
@@ -22,9 +25,11 @@ func (h *Handler) getImage(ctx *gin.Context) {
 	imageQuality := ctx.Query("quality")
 
 	imageQualityInt, err := strconv.Atoi(imageQuality)
-	if err != nil {
+	if err != nil && imageQuality != "" {
 		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid image quality").Error())
 		return
+	} else {
+		imageQualityInt = defaultImageQuality
 	}
 
 	imageUUID, err := uuid.Parse(imageID)
