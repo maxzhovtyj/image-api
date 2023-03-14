@@ -25,11 +25,13 @@ func (h *Handler) getImage(ctx *gin.Context) {
 	imageQuality := ctx.Query("quality")
 
 	imageQualityInt, err := strconv.Atoi(imageQuality)
-	if err != nil && imageQuality != "" {
-		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid image quality").Error())
-		return
-	} else {
-		imageQualityInt = defaultImageQuality
+	if err != nil {
+		if imageQuality == "" {
+			imageQualityInt = defaultImageQuality
+		} else {
+			newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid image quality").Error())
+			return
+		}
 	}
 
 	imageUUID, err := uuid.Parse(imageID)
