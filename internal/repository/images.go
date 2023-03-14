@@ -6,9 +6,6 @@ import (
 	"github.com/maxzhovtyj/image-api/internal/domain"
 	"github.com/maxzhovtyj/image-api/pkg/img"
 	"image"
-	"io/fs"
-	"path/filepath"
-	"strings"
 )
 
 type ImagesRepo struct {
@@ -33,35 +30,8 @@ func (r *ImagesRepo) GetAllImagesID() ([]uuid.UUID, error) {
 }
 
 func (r *ImagesRepo) Get(fileName string) ([]byte, error) {
-	var fileRes string
-
-	err := filepath.Walk(r.dir, func(path string, info fs.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		currFileName := info.Name()
-
-		if info.IsDir() {
-			return nil
-		}
-
-		fileBase := filepath.Base(currFileName)
-		fileExt := filepath.Ext(currFileName)
-
-		currFileNameWithoutExt := strings.TrimSuffix(fileBase, fileExt)
-
-		if currFileNameWithoutExt == fileName {
-			fileRes = currFileName
-		}
-
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if fileRes == "" {
+	fileRes, err := r.manager.FindFile(r.dir, fileName)
+	if err != nil || fileRes == "" {
 		return nil, domain.ErrImageNotFound
 	}
 

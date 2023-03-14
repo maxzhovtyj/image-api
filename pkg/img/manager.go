@@ -14,6 +14,7 @@ import (
 )
 
 type ImageManager interface {
+	FindFile(dir, fileName string) (string, error)
 	Resize(width, height uint, img image.Image) image.Image
 	ReadAll(dir string) ([]uuid.UUID, error)
 	Read(path string) ([]byte, error)
@@ -35,6 +36,38 @@ var contentTypeExtension = map[string]string{
 
 func (m *Manager) Resize(width, height uint, img image.Image) image.Image {
 	return resize.Resize(width, height, img, resize.Lanczos3)
+}
+
+func (m *Manager) FindFile(dir, fileName string) (string, error) {
+	var fileRes string
+
+	err := filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		currFileName := info.Name()
+
+		if info.IsDir() {
+			return nil
+		}
+
+		fileBase := filepath.Base(currFileName)
+		fileExt := filepath.Ext(currFileName)
+
+		currFileNameWithoutExt := strings.TrimSuffix(fileBase, fileExt)
+
+		if currFileNameWithoutExt == fileName {
+			fileRes = currFileName
+		}
+
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return fileRes, nil
 }
 
 func (m *Manager) ReadAll(dir string) ([]uuid.UUID, error) {
