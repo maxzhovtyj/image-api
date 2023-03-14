@@ -51,6 +51,15 @@ func (h *Handler) getImage(ctx *gin.Context) {
 	}
 }
 
+func (h *Handler) getImageList(ctx *gin.Context) {
+	all, err := h.services.Images.GetAll()
+	if err != nil {
+		return
+	}
+
+	ctx.JSON(http.StatusOK, all)
+}
+
 func (h *Handler) addImage(ctx *gin.Context) {
 	err := ctx.Request.ParseMultipartForm(maxFileSize)
 	if err != nil {
@@ -94,5 +103,5 @@ func (h *Handler) addImage(ctx *gin.Context) {
 		return
 	}
 
-	ctx.String(http.StatusOK, "image successfully published")
+	ctx.String(http.StatusCreated, "image successfully published")
 }

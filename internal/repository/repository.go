@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"github.com/google/uuid"
 	"github.com/maxzhovtyj/image-api/pkg/img"
 	"image"
 	"log"
@@ -8,6 +9,7 @@ import (
 )
 
 type Images interface {
+	GetAllImagesID() ([]uuid.UUID, error)
 	Get(fileName string) ([]byte, error)
 	Create(name string, contentType string, image image.Image) error
 	Resize(width, height uint, img image.Image) image.Image

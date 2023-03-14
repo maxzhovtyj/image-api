@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/maxzhovtyj/image-api/internal/domain"
 	"github.com/maxzhovtyj/image-api/pkg/img"
 	"image"
@@ -22,6 +23,15 @@ func NewImagesRepo(imageDirPath string, manager img.ImageManager) *ImagesRepo {
 	}
 }
 
+func (r *ImagesRepo) GetAllImagesID() ([]uuid.UUID, error) {
+	filesList, err := r.manager.ReadAll(r.dir)
+	if err != nil {
+		return nil, err
+	}
+
+	return filesList, nil
+}
+
 func (r *ImagesRepo) Get(fileName string) ([]byte, error) {
 	var fileRes string
 
@@ -31,6 +41,10 @@ func (r *ImagesRepo) Get(fileName string) ([]byte, error) {
 		}
 
 		currFileName := info.Name()
+
+		if info.IsDir() {
+			return nil
+		}
 
 		fileBase := filepath.Base(currFileName)
 		fileExt := filepath.Ext(currFileName)

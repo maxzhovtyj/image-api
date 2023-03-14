@@ -19,6 +19,10 @@ func (s *ImagesService) getFileName(imageID string, quality int) string {
 	return fmt.Sprintf("%s_%d", imageID, quality)
 }
 
+func (s *ImagesService) GetAll() ([]uuid.UUID, error) {
+	return s.repo.GetAllImagesID()
+}
+
 func (s *ImagesService) Get(imageID uuid.UUID, quality int) ([]byte, error) {
 	fileName := s.getFileName(imageID.String(), quality)
 

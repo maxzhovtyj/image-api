@@ -9,6 +9,7 @@ import (
 )
 
 type Images interface {
+	GetAll() ([]uuid.UUID, error)
 	Get(imageID uuid.UUID, quality int) ([]byte, error)
 	Create(image image.Image, imageID uuid.UUID, contentType string, quality int) error
 	Resize(img image.Image, width, height int) (image.Image, error)

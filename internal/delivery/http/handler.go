@@ -28,6 +28,7 @@ func (h *Handler) Init() *gin.Engine {
 
 	api := router.Group(apiURL)
 	{
+		api.GET("images-list", h.getImageList)
 		api.GET(imageURL, h.getImage)
 		api.POST(imageURL, h.addImage)
 	}
