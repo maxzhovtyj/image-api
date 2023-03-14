@@ -4,22 +4,29 @@ import (
 	"bytes"
 	"github.com/google/uuid"
 	"github.com/maxzhovtyj/image-api/internal/service"
+	"github.com/maxzhovtyj/image-api/pkg/logger"
 	"github.com/maxzhovtyj/image-api/pkg/queue/rabbitmq"
 	"image"
-	"log"
 )
 
 type Consumer struct {
 	client    *rabbitmq.Consumer
 	service   service.Images
 	qualities []int
+	logger    logger.Logger
 }
 
-func NewConsumer(consumer *rabbitmq.Consumer, images service.Images, imageQualities []int) *Consumer {
+func NewConsumer(
+	consumer *rabbitmq.Consumer,
+	images service.Images,
+	imageQualities []int,
+	logger logger.Logger,
+) *Consumer {
 	return &Consumer{
 		client:    consumer,
 		service:   images,
 		qualities: imageQualities,
+		logger:    logger,
 	}
 }
 
@@ -37,7 +44,8 @@ func (c *Consumer) worker() {
 		case msg := <-messages:
 			decodedImage, _, err := image.Decode(bytes.NewReader(msg.Body))
 			if err != nil {
-				log.Fatal(err)
+				c.logger.Errorf("failed to decode image due to %v", err)
+				return
 			}
 
 			currWidth := decodedImage.Bounds().Dx()
@@ -45,7 +53,8 @@ func (c *Consumer) worker() {
 
 			newUUID, err := uuid.NewUUID()
 			if err != nil {
-				log.Fatal(err)
+				c.logger.Errorf("failed create img uuid, %v", err)
+				return
 			}
 
 			for _, quality := range c.qualities {
@@ -54,12 +63,14 @@ func (c *Consumer) worker() {
 
 				resizedImg, err := c.service.Resize(decodedImage, newWidth, newHeight)
 				if err != nil {
-					log.Fatal(err)
+					c.logger.Errorf("failed to resize image due to %v", err)
+					return
 				}
 
 				err = c.service.Create(resizedImg, newUUID, msg.ContentType, quality)
 				if err != nil {
-					log.Fatal(err)
+					c.logger.Errorf("failed to create and write new image due to %v", err)
+					return
 				}
 			}
 		}
