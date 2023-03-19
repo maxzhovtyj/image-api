@@ -21,26 +21,26 @@ const (
 func (h *Handler) getImage(ctx *gin.Context) {
 	ctx.Request.Header.Set("Content-Type", "application/octet-stream")
 
-	imageID := ctx.Query("id")
-	imageQuality := ctx.Query("quality")
+	imageIDParam := ctx.Query("id")
+	imageQualityParam := ctx.Query("quality")
 
-	imageQualityInt, err := strconv.Atoi(imageQuality)
+	imageQuality, err := strconv.Atoi(imageQualityParam)
 	if err != nil {
-		if imageQuality == "" {
-			imageQualityInt = defaultImageQuality
+		if imageQualityParam == "" {
+			imageQuality = defaultImageQuality
 		} else {
 			newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid image quality").Error())
 			return
 		}
 	}
 
-	imageUUID, err := uuid.Parse(imageID)
+	imageUUID, err := uuid.Parse(imageIDParam)
 	if err != nil {
 		newErrorResponse(ctx, http.StatusBadRequest, fmt.Errorf("invalid image uuid").Error())
 		return
 	}
 
-	imageBytes, err := h.services.Images.Get(imageUUID, imageQualityInt)
+	imageBytes, err := h.services.Images.Get(imageUUID, imageQuality)
 	if err != nil {
 		if errors.Is(err, domain.ErrImageNotFound) {
 			newErrorResponse(ctx, http.StatusBadRequest, err.Error())
